@@ -23,8 +23,8 @@
     [모바일 앱 (Flutter)]  
     ⇅  
     [백엔드 서버 (Flutter + Dart)]  
-    ⇅               ⇅  
-    [데이터베이스]   [지도 API (Kakao / Naver)]
+    ⇅                           ⇅  
+    [데이터베이스 (MongoDB)]   [지도 API (Kakao / Naver)]
 
 - 모바일 앱
 - 백엔드 서버
