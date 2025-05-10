@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import '../models/property.dart';
 import '../widgets/infosheet.dart';
+import '../screens/map_screen.dart';
+import '../screens/preference_screen.dart';
 
 enum CompareOp { greater, equal, less }
 
@@ -31,7 +33,7 @@ class _HomeScreenState extends State<HomeScreen> {
   // 예시 데이터 (실제 데이터는 서버에서 받아오면 됨)
   final List<Property> properties = [
     Property(
-      image: 'assets/house1.jpg',
+      image: 'lib/assets/default_image.png',
       address: '서울시 강남구 역삼동 123-45',
       type: '아파트',
       floor: 10,
@@ -323,6 +325,33 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  void _toggleFavorite(Property property) {
+    setState(() {
+      final index = properties.indexOf(property);
+      if (index != -1) {
+        // 불변 객체이므로 복사본 생성
+        final updated = Property(
+          image: property.image,
+          address: property.address,
+          type: property.type,
+          floor: property.floor,
+          area: property.area,
+          price: property.price,
+          options: property.options,
+          contact: property.contact,
+          tags: property.tags,
+          isFavorite: !property.isFavorite,
+        );
+        properties[index] = updated;
+        // 즐겨찾기 우선 정렬
+        properties.sort((a, b) {
+          if (a.isFavorite == b.isFavorite) return 0;
+          return a.isFavorite ? -1 : 1;
+        });
+      }
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -391,7 +420,10 @@ class _HomeScreenState extends State<HomeScreen> {
                 itemCount: filteredProperties.length,
                 itemBuilder: (context, index) {
                   final property = filteredProperties[index];
-                  return _PropertyCard(property: property);
+                  return _PropertyCard(
+                    property: property,
+                    onToggleFavorite: () => _toggleFavorite(property),
+                  );
                 },
               ),
             ),
@@ -410,7 +442,19 @@ class _HomeScreenState extends State<HomeScreen> {
         ],
         currentIndex: 0,
         onTap: (index) {
-          // TODO: 각 탭 이동 구현
+          if (index == 0) {
+            // 이미 Home이므로 아무것도 안 해도 됨
+          } else if (index == 1) {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => MapScreen()),
+            );
+          } else if (index == 2) {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => PreferenceScreen()),
+            );
+          }
         },
       ),
       // Add 버튼 (FloatingActionButton)
@@ -429,8 +473,13 @@ class _HomeScreenState extends State<HomeScreen> {
 // 매물 카드 위젯
 class _PropertyCard extends StatelessWidget {
   final Property property;
+  final VoidCallback onToggleFavorite;
 
-  const _PropertyCard({required this.property, Key? key}) : super(key: key);
+  const _PropertyCard({
+    required this.property,
+    required this.onToggleFavorite,
+    Key? key,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -469,7 +518,9 @@ class _PropertyCard extends StatelessWidget {
               ClipRRect(
                 borderRadius: BorderRadius.circular(8),
                 child: Image.asset(
-                  property.image,
+                  property.image.isNotEmpty
+                      ? property.image
+                      : 'lib/assets/default_image.png',
                   width: 129,
                   height: 100,
                   fit: BoxFit.cover,
@@ -513,9 +564,7 @@ class _PropertyCard extends StatelessWidget {
                         : Icons.favorite_border,
                     color: property.isFavorite ? Colors.red : Colors.grey,
                   ),
-                  onPressed: () {
-                    // TODO: 즐겨찾기 토글 기능 구현
-                  },
+                  onPressed: onToggleFavorite,
                 ),
               ),
             ],

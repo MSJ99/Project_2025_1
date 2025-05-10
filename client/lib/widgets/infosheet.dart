@@ -25,8 +25,61 @@ class InfoSheet extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // 이미지, 주소, 종류, 층수, 평수, 가격, 옵션, 연락처, 태그, isFavorite 등 상세 정보 표시
-                  // ...
+                  // 이미지
+                  Center(
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(12),
+                      child: Image.asset(
+                        property.image.isNotEmpty
+                            ? property.image
+                            : 'lib/assets/default_image.png',
+                        width: 200,
+                        height: 150,
+                        fit: BoxFit.cover,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  // 주소
+                  Text(
+                    property.address,
+                    style: const TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  // 종류, 층수, 평수, 가격, 옵션, 연락처
+                  Text('종류: ${property.type}'),
+                  Text('층수: ${property.floor}층'),
+                  Text('평수: ${property.area}평'),
+                  Text('가격: ${property.price}원'),
+                  Text('옵션: ${property.options}'),
+                  Text('연락처: ${property.contact}'),
+                  const SizedBox(height: 8),
+                  // 태그
+                  Wrap(
+                    spacing: 8,
+                    children:
+                        property.tags
+                            .map((tag) => Chip(label: Text(tag)))
+                            .toList(),
+                  ),
+                  const SizedBox(height: 16),
+                  // 즐겨찾기 여부
+                  Row(
+                    children: [
+                      Icon(
+                        property.isFavorite
+                            ? Icons.favorite
+                            : Icons.favorite_border,
+                        color: property.isFavorite ? Colors.red : Colors.grey,
+                      ),
+                      const SizedBox(width: 8),
+                      Text(property.isFavorite ? '즐겨찾기됨' : '즐겨찾기 아님'),
+                    ],
+                  ),
+                  const SizedBox(height: 24),
                   // Edit, Undo 버튼
                   Row(
                     mainAxisAlignment: MainAxisAlignment.end,
@@ -55,12 +108,6 @@ class InfoSheet extends StatelessWidget {
                           );
                         },
                         child: const Text('Edit'),
-                      ),
-                      TextButton(
-                        onPressed: () {
-                          Navigator.pop(context); // Info 창 닫기(Undo)
-                        },
-                        child: const Text('Undo'),
                       ),
                     ],
                   ),

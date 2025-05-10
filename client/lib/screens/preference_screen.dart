@@ -1,8 +1,33 @@
 import 'package:flutter/material.dart';
 import 'sign_in_screen.dart';
+import 'home_screen.dart';
+import 'map_screen.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
-class PreferenceScreen extends StatelessWidget {
+class PreferenceScreen extends StatefulWidget {
   const PreferenceScreen({Key? key}) : super(key: key);
+
+  @override
+  State<PreferenceScreen> createState() => _PreferenceScreenState();
+}
+
+class _PreferenceScreenState extends State<PreferenceScreen> {
+  String userName = '';
+  int propertyCount = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadUserName();
+  }
+
+  Future<void> _loadUserName() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      userName = prefs.getString('userName') ?? '';
+      // propertyCount도 필요하다면 불러오기
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -25,63 +50,49 @@ class PreferenceScreen extends StatelessWidget {
               ),
               child: Padding(
                 padding: const EdgeInsets.all(24),
-                child: Row(
+                child: Column(
                   mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(12),
-                      child: Image.asset(
-                        'assets/profile_sample.png',
-                        width: 64,
-                        height: 64,
-                        fit: BoxFit.cover,
+                    Text(
+                      userName.isNotEmpty ? '$userName 님.' : '로그인 계정 없음',
+                      style: const TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
                       ),
                     ),
-                    const SizedBox(width: 24),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: const [
-                        Text(
-                          'SJ MYEONG',
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
+                    const SizedBox(height: 12),
+                    Text(
+                      '현재 ${propertyCount}개 매물이 등록되어 있습니다.',
+                      style: const TextStyle(fontSize: 16),
+                    ),
+                    const SizedBox(height: 24),
+                    SizedBox(
+                      width: double.infinity,
+                      height: 40,
+                      child: ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.black,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
                           ),
                         ),
-                        SizedBox(height: 8),
-                        Text(
-                          'Logged in with Google',
-                          style: TextStyle(fontSize: 14, color: Colors.grey),
+                        onPressed: () {
+                          // TODO: 토큰/로그인 상태 삭제
+                          Navigator.of(context).pushAndRemoveUntil(
+                            MaterialPageRoute(
+                              builder: (context) => SignInScreen(),
+                            ),
+                            (route) => false,
+                          );
+                        },
+                        child: const Text(
+                          'Log Out',
+                          style: TextStyle(color: Colors.white),
                         ),
-                      ],
+                      ),
                     ),
                   ],
-                ),
-              ),
-            ),
-            const SizedBox(height: 32),
-            SizedBox(
-              width: 200,
-              height: 40,
-              child: ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.black,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                ),
-                onPressed: () {
-                  // TODO: 토큰/로그인 상태 삭제
-                  Navigator.of(context).pushAndRemoveUntil(
-                    MaterialPageRoute(
-                      builder: (context) => const SignInScreen(),
-                    ),
-                    (route) => false,
-                  );
-                },
-                child: const Text(
-                  'Log Out',
-                  style: TextStyle(color: Colors.white),
                 ),
               ),
             ),
@@ -99,7 +110,61 @@ class PreferenceScreen extends StatelessWidget {
         ],
         currentIndex: 2,
         onTap: (index) {
-          // TODO: 각 탭 이동 구현
+          if (index == 0) {
+            Navigator.push(
+              context,
+              PageRouteBuilder(
+                pageBuilder:
+                    (context, animation, secondaryAnimation) => HomeScreen(),
+                transitionsBuilder: (
+                  context,
+                  animation,
+                  secondaryAnimation,
+                  child,
+                ) {
+                  const begin = Offset(-1.0, 0.0);
+                  const end = Offset.zero;
+                  const curve = Curves.ease;
+                  var tween = Tween(
+                    begin: begin,
+                    end: end,
+                  ).chain(CurveTween(curve: curve));
+                  return SlideTransition(
+                    position: animation.drive(tween),
+                    child: child,
+                  );
+                },
+              ),
+            );
+          } else if (index == 1) {
+            Navigator.push(
+              context,
+              PageRouteBuilder(
+                pageBuilder:
+                    (context, animation, secondaryAnimation) => MapScreen(),
+                transitionsBuilder: (
+                  context,
+                  animation,
+                  secondaryAnimation,
+                  child,
+                ) {
+                  const begin = Offset(-1.0, 0.0);
+                  const end = Offset.zero;
+                  const curve = Curves.ease;
+                  var tween = Tween(
+                    begin: begin,
+                    end: end,
+                  ).chain(CurveTween(curve: curve));
+                  return SlideTransition(
+                    position: animation.drive(tween),
+                    child: child,
+                  );
+                },
+              ),
+            );
+          } else if (index == 2) {
+            // 이미 Preference이므로 아무것도 안 해도 됨
+          }
         },
       ),
     );

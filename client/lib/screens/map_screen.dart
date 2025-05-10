@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import '../models/property.dart';
 import '../widgets/infosheet.dart';
+import 'home_screen.dart';
+import 'preference_screen.dart';
 
 class MapScreen extends StatelessWidget {
   const MapScreen({Key? key}) : super(key: key);
@@ -79,13 +81,46 @@ class MapScreen extends StatelessWidget {
           BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
           BottomNavigationBarItem(icon: Icon(Icons.map), label: 'Map'),
           BottomNavigationBarItem(
-            icon: Icon(Icons.person),
+            icon: Icon(Icons.settings),
             label: 'Preference',
           ),
         ],
-        currentIndex: 1, // Map이 현재 선택됨
+        currentIndex: 1,
         onTap: (index) {
-          // TODO: 각 화면으로 이동
+          if (index == 0) {
+            Navigator.push(
+              context,
+              PageRouteBuilder(
+                pageBuilder:
+                    (context, animation, secondaryAnimation) => HomeScreen(),
+                transitionsBuilder: (
+                  context,
+                  animation,
+                  secondaryAnimation,
+                  child,
+                ) {
+                  const begin = Offset(-1.0, 0.0);
+                  const end = Offset.zero;
+                  const curve = Curves.ease;
+                  var tween = Tween(
+                    begin: begin,
+                    end: end,
+                  ).chain(CurveTween(curve: curve));
+                  return SlideTransition(
+                    position: animation.drive(tween),
+                    child: child,
+                  );
+                },
+              ),
+            );
+          } else if (index == 1) {
+            // 이미 Map이므로 아무것도 안 해도 됨
+          } else if (index == 2) {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => PreferenceScreen()),
+            );
+          }
         },
       ),
     );

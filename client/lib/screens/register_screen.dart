@@ -41,7 +41,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
           context,
         ).showSnackBar(const SnackBar(content: Text('회원가입 성공! 로그인 해주세요.')));
         Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (context) => const SignInScreen()),
+          MaterialPageRoute(builder: (context) => SignInScreen()),
         );
       } else {
         final msg = jsonDecode(response.body)['error'] ?? '회원가입 실패';
@@ -130,9 +130,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 TextButton(
                   onPressed: () {
                     Navigator.of(context).pushReplacement(
-                      MaterialPageRoute(
-                        builder: (context) => const SignInScreen(),
-                      ),
+                      MaterialPageRoute(builder: (context) => SignInScreen()),
                     );
                   },
                   child: const Text(

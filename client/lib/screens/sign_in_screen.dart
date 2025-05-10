@@ -1,9 +1,13 @@
 import 'package:flutter/material.dart';
 import 'home_screen.dart';
 import 'register_screen.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class SignInScreen extends StatelessWidget {
-  const SignInScreen({Key? key}) : super(key: key);
+  final TextEditingController _idController = TextEditingController();
+  final TextEditingController _pwController = TextEditingController();
+
+  SignInScreen({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -18,10 +22,14 @@ class SignInScreen extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 // ID 입력 필드
-                _InputField(label: 'ID'),
+                _InputField(label: 'ID', controller: _idController),
                 const SizedBox(height: 24),
                 // Password 입력 필드
-                _InputField(label: 'Password', obscureText: true),
+                _InputField(
+                  label: 'Password',
+                  controller: _pwController,
+                  obscureText: true,
+                ),
                 const SizedBox(height: 24),
                 // Sign In 버튼
                 SizedBox(
@@ -34,9 +42,13 @@ class SignInScreen extends StatelessWidget {
                         borderRadius: BorderRadius.circular(8),
                       ),
                     ),
-                    onPressed: () {
+                    onPressed: () async {
+                      final id = _idController.text.trim();
                       // TODO: 로그인 로직 구현 (서버 요청 등)
-                      Navigator.of(context).pushReplacement(
+                      final prefs = await SharedPreferences.getInstance();
+                      await prefs.setString('userName', id);
+                      Navigator.pushReplacement(
+                        context,
                         MaterialPageRoute(builder: (context) => HomeScreen()),
                       );
                     },
@@ -55,9 +67,7 @@ class SignInScreen extends StatelessWidget {
                 GestureDetector(
                   onTap: () {
                     Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (context) => const RegisterScreen(),
-                      ),
+                      MaterialPageRoute(builder: (context) => RegisterScreen()),
                     );
                   },
                   child: const Text(
@@ -86,8 +96,14 @@ class SignInScreen extends StatelessWidget {
 class _InputField extends StatelessWidget {
   final String label;
   final bool obscureText;
-  const _InputField({required this.label, this.obscureText = false, Key? key})
-    : super(key: key);
+  final TextEditingController controller;
+
+  const _InputField({
+    required this.label,
+    required this.controller,
+    this.obscureText = false,
+    Key? key,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -104,6 +120,7 @@ class _InputField extends StatelessWidget {
         ),
         const SizedBox(height: 8),
         TextField(
+          controller: controller,
           obscureText: obscureText,
           decoration: InputDecoration(
             filled: true,

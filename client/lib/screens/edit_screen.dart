@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:http/http.dart' as http;
+import 'dart:convert';
 
 class EditScreen extends StatefulWidget {
   final Map<String, dynamic> property;
@@ -87,39 +88,6 @@ class _EditScreenState extends State<EditScreen> {
         backgroundColor: Colors.white,
         foregroundColor: Colors.black,
         elevation: 0,
-        actions: [
-          TextButton(
-            onPressed: () {
-              Navigator.pop(context); // Undo
-            },
-            child: const Text('Undo', style: TextStyle(color: Colors.black)),
-          ),
-          TextButton(
-            onPressed: () async {
-              final id = widget.property['_id'];
-              if (id == null) {
-                ScaffoldMessenger.of(
-                  context,
-                ).showSnackBar(const SnackBar(content: Text('매물 ID가 없습니다.')));
-                return;
-              }
-              final url = Uri.parse('http://localhost:8080/api/properties/$id');
-              final response = await http.delete(url);
-              if (response.statusCode == 200) {
-                if (!mounted) return;
-                ScaffoldMessenger.of(
-                  context,
-                ).showSnackBar(const SnackBar(content: Text('매물이 삭제되었습니다.')));
-                Navigator.pop(context);
-              } else {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('삭제 실패: \\n"+response.body')),
-                );
-              }
-            },
-            child: const Text('Delete', style: TextStyle(color: Colors.red)),
-          ),
-        ],
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(24),
@@ -130,30 +98,15 @@ class _EditScreenState extends State<EditScreen> {
             Center(
               child: GestureDetector(
                 onTap: _pickImage,
-                child:
-                    _image == null
-                        ? Container(
-                          width: 120,
-                          height: 120,
-                          decoration: BoxDecoration(
-                            color: const Color(0xFFF5F5F5),
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: const Icon(
-                            Icons.add_a_photo,
-                            size: 40,
-                            color: Colors.grey,
-                          ),
-                        )
-                        : ClipRRect(
-                          borderRadius: BorderRadius.circular(12),
-                          child: Image.file(
-                            File(_image!.path),
-                            width: 120,
-                            height: 120,
-                            fit: BoxFit.cover,
-                          ),
-                        ),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(12),
+                  child: Image.asset(
+                    'lib/assets/default_image.png',
+                    width: 120,
+                    height: 120,
+                    fit: BoxFit.cover,
+                  ),
+                ),
               ),
             ),
             const SizedBox(height: 24),
@@ -189,28 +142,91 @@ class _EditScreenState extends State<EditScreen> {
             const SizedBox(height: 16),
             _buildTextField(_tagsController, '태그 (쉼표로 구분)'),
             const SizedBox(height: 32),
-            SizedBox(
-              width: double.infinity,
-              height: 48,
-              child: ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF2c2c2c),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
+            Row(
+              children: [
+                Expanded(
+                  child: SizedBox(
+                    height: 48,
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF2c2c2c),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                      ),
+                      onPressed: () async {
+                        // TODO: 서버로 데이터 전송 및 수정 처리
+                        final updatedProperty = {
+                          'address': _addressController.text,
+                          'type': _typeController.text,
+                          'floor': int.tryParse(_floorController.text) ?? 0,
+                          'area': double.tryParse(_areaController.text) ?? 0.0,
+                          'price': int.tryParse(_priceController.text) ?? 0,
+                          'options': _optionsController.text,
+                          'contact': _contactController.text,
+                          'tags': _tagsController.text.split(','),
+                          // 이미지 업로드 등 추가
+                        };
+                        // 서버 전송 또는 상태 갱신 로직 작성
+                      },
+                      child: const Text(
+                        'Edit',
+                        style: TextStyle(
+                          color: Color(0xFFF5F5F5),
+                          fontSize: 18,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ),
                   ),
                 ),
-                onPressed: () {
-                  // TODO: 서버로 데이터 전송 및 수정 처리
-                },
-                child: const Text(
-                  'Edit',
-                  style: TextStyle(
-                    color: Color(0xFFF5F5F5),
-                    fontSize: 18,
-                    fontWeight: FontWeight.w500,
+                const SizedBox(width: 16),
+                Expanded(
+                  child: SizedBox(
+                    height: 48,
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.red,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                      ),
+                      onPressed: () async {
+                        final id = widget.property['_id'];
+                        if (id == null) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('매물 ID가 없습니다.')),
+                          );
+                          return;
+                        }
+                        final url = Uri.parse(
+                          'http://localhost:8080/api/properties/$id',
+                        );
+                        final response = await http.delete(url);
+                        if (response.statusCode == 200) {
+                          if (!mounted) return;
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('매물이 삭제되었습니다.')),
+                          );
+                          Navigator.pop(context);
+                        } else {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text('삭제 실패: ${response.body}')),
+                          );
+                        }
+                      },
+                      child: const Text(
+                        'Delete',
+                        style: TextStyle(
+                          color: Color(0xFFF5F5F5),
+                          fontSize: 18,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ),
                   ),
                 ),
-              ),
+              ],
             ),
           ],
         ),
