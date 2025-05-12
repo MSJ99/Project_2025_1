@@ -191,9 +191,28 @@ Future<void> startServer() async {
     ..delete('/api/properties/<id>', deletePropertyHandler)
     ..post('/api/properties/<id>/favorite', toggleFavoriteHandler);
 
+  // 인증 예외 미들웨어: 회원가입/로그인/로그아웃 경로는 인증 없이, 그 외는 인증 필요
+  Middleware authExceptionMiddleware() {
+    return (Handler innerHandler) {
+      return (Request request) async {
+        final path = request.url.path;
+        if (path == 'api/auth/register' ||
+            path == 'api/auth/login' ||
+            path == 'api/auth/logout') {
+          // 인증 없이 통과
+          return await innerHandler(request);
+        } else {
+          // 인증 필요
+          return await jwtMiddleware()(innerHandler)(request);
+        }
+      };
+    };
+  }
+
   final handler = const Pipeline()
       .addMiddleware(logRequests())
       .addMiddleware(corsHeaders())
+      .addMiddleware(authExceptionMiddleware())
       .addHandler(router);
 
   final server = await io.serve(handler, 'localhost', 8080);
