@@ -108,8 +108,12 @@ Future<Response> addPropertyHandler(Request req) async {
     }
   }
   if (imageUrl != null) propertyData['image'] = imageUrl;
+  propertyData.remove('id');
   final result = await propertiesCol.insert(propertyData);
   propertyData['_id'] = result['insertedId'];
+  // _id를 id로 변환해서 응답에 포함
+  propertyData['id'] = propertyData['_id'].toString();
+  propertyData.remove('_id');
   return Response.ok(jsonEncode(propertyData));
 }
 
