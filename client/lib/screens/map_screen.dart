@@ -34,10 +34,28 @@ class MapScreen extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('지도'),
         backgroundColor: Colors.white,
         foregroundColor: Colors.black,
         elevation: 0,
+        automaticallyImplyLeading: false,
+        title: Container(
+          height: 40,
+          decoration: BoxDecoration(
+            color: Color(0xFFF5F5F5),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: TextField(
+            decoration: InputDecoration(
+              hintText: '도로명주소 검색',
+              border: InputBorder.none,
+              contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 0),
+              suffixIcon: Icon(Icons.search, color: Colors.grey),
+            ),
+            onSubmitted: (value) {
+              // TODO: 검색 기능 구현
+            },
+          ),
+        ),
       ),
       body: Stack(
         children: [
@@ -53,25 +71,11 @@ class MapScreen extends StatelessWidget {
           ),
           // 임시 마커(버튼) - 실제로는 지도 위에 마커가 있어야 함
           Positioned(
-            left: 100,
+            left: 180,
             top: 200,
             child: GestureDetector(
               onTap: () => _showInfoSheet(context, dummyProperty),
               child: const Icon(Icons.location_on, size: 48, color: Colors.red),
-            ),
-          ),
-          Positioned(
-            top: 24,
-            right: 24,
-            child: FloatingActionButton(
-              heroTag: 'searchBtn',
-              backgroundColor: Colors.white,
-              foregroundColor: Colors.black,
-              elevation: 2,
-              onPressed: () {
-                // TODO: [Search Address] 화면으로 이동
-              },
-              child: const Icon(Icons.search),
             ),
           ),
         ],

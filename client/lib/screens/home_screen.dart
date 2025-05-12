@@ -7,7 +7,7 @@ import '../screens/preference_screen.dart';
 enum CompareOp { greater, equal, less }
 
 class _Filter {
-  String? type; // '매매', '월세', '전세' 중 하나
+  String? type; // '매매', '월세', '전세'
   CompareOp? floorOp;
   int? floorValue;
   CompareOp? areaOp;
@@ -413,6 +413,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 ],
               ),
             ),
+            SizedBox(height: 8),
             // 리스트
             Expanded(
               child: ListView.builder(
