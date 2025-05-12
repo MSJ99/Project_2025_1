@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:http/http.dart' as http;
 
 class AddScreen extends StatefulWidget {
   const AddScreen({Key? key}) : super(key: key);
@@ -139,8 +140,47 @@ class _AddScreenState extends State<AddScreen> {
                     borderRadius: BorderRadius.circular(8),
                   ),
                 ),
-                onPressed: () {
-                  // TODO: 서버로 데이터 전송 및 등록 처리
+                onPressed: () async {
+                  final url = Uri.parse('http://localhost:8080/api/properties');
+                  var request = http.MultipartRequest('POST', url);
+
+                  // 텍스트 필드 추가
+                  request.fields['address'] = _addressController.text;
+                  request.fields['type'] = _typeController.text;
+                  request.fields['floor'] = _floorController.text;
+                  request.fields['area'] = _areaController.text;
+                  request.fields['price'] = _priceController.text;
+                  request.fields['options'] = _optionsController.text;
+                  request.fields['contact'] = _contactController.text;
+                  request.fields['tags'] = _tagsController.text; // 쉼표로 구분된 문자열
+
+                  // 이미지 파일 추가 (선택된 경우)
+                  if (_image != null) {
+                    request.files.add(
+                      await http.MultipartFile.fromPath('image', _image!.path),
+                    );
+                  } else {
+                    // 이미지가 선택되지 않은 경우, 기본 이미지 경로를 필드로 추가
+                    request.fields['image'] = 'lib/assets/default_image.png';
+                  }
+
+                  // 요청 보내기
+                  var response = await request.send();
+
+                  if (response.statusCode == 200 ||
+                      response.statusCode == 201) {
+                    if (!mounted) return;
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('매물이 등록되었습니다.')),
+                    );
+                    Navigator.pop(context);
+                  } else {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('등록 실패: ${response.reasonPhrase}'),
+                      ),
+                    );
+                  }
                 },
                 child: const Text(
                   'Add',

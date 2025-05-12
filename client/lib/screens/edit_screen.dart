@@ -1,8 +1,6 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:http/http.dart' as http;
-import 'dart:convert';
 
 class EditScreen extends StatefulWidget {
   final Map<String, dynamic> property;
@@ -155,19 +153,63 @@ class _EditScreenState extends State<EditScreen> {
                         ),
                       ),
                       onPressed: () async {
-                        // TODO: 서버로 데이터 전송 및 수정 처리
-                        final updatedProperty = {
-                          'address': _addressController.text,
-                          'type': _typeController.text,
-                          'floor': int.tryParse(_floorController.text) ?? 0,
-                          'area': double.tryParse(_areaController.text) ?? 0.0,
-                          'price': int.tryParse(_priceController.text) ?? 0,
-                          'options': _optionsController.text,
-                          'contact': _contactController.text,
-                          'tags': _tagsController.text.split(','),
-                          // 이미지 업로드 등 추가
-                        };
-                        // 서버 전송 또는 상태 갱신 로직 작성
+                        final id = widget.property['_id'];
+                        if (id == null) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('매물 ID가 없습니다.')),
+                          );
+                          return;
+                        }
+
+                        final url = Uri.parse(
+                          'http://localhost:8080/api/properties/$id',
+                        );
+                        var request = http.MultipartRequest('PATCH', url);
+
+                        // 텍스트 필드 추가
+                        request.fields['address'] = _addressController.text;
+                        request.fields['type'] = _typeController.text;
+                        request.fields['floor'] = _floorController.text;
+                        request.fields['area'] = _areaController.text;
+                        request.fields['price'] = _priceController.text;
+                        request.fields['options'] = _optionsController.text;
+                        request.fields['contact'] = _contactController.text;
+                        request.fields['tags'] =
+                            _tagsController.text; // 쉼표로 구분된 문자열
+
+                        // 이미지 파일 추가 (선택된 경우)
+                        if (_image != null) {
+                          request.files.add(
+                            await http.MultipartFile.fromPath(
+                              'image',
+                              _image!.path,
+                            ),
+                          );
+                        } else if (widget.property['imagePath'] != null &&
+                            widget.property['imagePath']
+                                .toString()
+                                .isNotEmpty) {
+                          // 기존 이미지 경로를 그대로 전달
+                          request.fields['image'] =
+                              widget.property['imagePath'];
+                        }
+
+                        // 요청 보내기
+                        var response = await request.send();
+
+                        if (response.statusCode == 200) {
+                          if (!mounted) return;
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('매물이 수정되었습니다.')),
+                          );
+                          Navigator.pop(context);
+                        } else {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text('수정 실패: ${response.reasonPhrase}'),
+                            ),
+                          );
+                        }
                       },
                       child: const Text(
                         'Edit',

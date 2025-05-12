@@ -1,6 +1,6 @@
-[기능 요구사항]
+[화면별 기능 요구사항]
 
-[Sign in]
+[Sign_in]
     객체: ID 적는 칸, Password 적는 칸, Sign in 버튼, Sign up 버튼, Continue with Google 버튼
     Sign in 버튼: 탭하면 로그인 기능 수행하고, 로그인 성공 시 [Home] 화면으로 이동
     Sign up 버튼: 탭하면 [Register] 화면으로 이동
@@ -9,7 +9,7 @@
 [Register]
     객체: ID 적는 칸, Password 적는 칸, Register 버튼, Already have an account? 버튼
     Register 버튼: 탭하면 회원가입 기능 수행하고, [Home]으로 이동
-    Already have an account? 버튼: 탭하면 [Sign in] 화면으로 이동
+    Already have an account? 버튼: 탭하면 [Sign_in] 화면으로 이동
 
 [Home]
     객체: 하단 바, 리스트, Add 버튼, 검색 바
@@ -54,9 +54,9 @@
         Preference 버튼: 탭하면 [Preference] 화면으로 이동
     지도:
         지도 화면을 표시하는 지도 객체, Naver Map API와 연동되어야 함, Naver Map API의 기능 중 마커 표시, 마커 클릭 시 매물 상세 화면인 [info]를 위에 띄움
-    검색 버튼: 탭하면 [Search Address] 화면으로 이동
+    검색 버튼: 탭하면 [Search_Address] 화면으로 이동
 
-[Search Address]
+[Search_Address]
     객체: 검색 바
     검색 바:
         오른쪽에 Search 버튼을 가지는 SearchBar

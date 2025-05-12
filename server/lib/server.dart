@@ -70,7 +70,7 @@ Future<Response> loginHandler(Request req) async {
   );
 }
 
-// 매물 등록 (이미지 업로드 포함)
+// 매물 등록
 Future<Response> addPropertyHandler(Request req) async {
   final contentType = req.headers['content-type'];
   if (contentType == null || !contentType.contains('multipart/form-data')) {
@@ -119,7 +119,7 @@ Future<Response> listPropertiesHandler(Request req) async {
   return Response.ok(jsonEncode(list));
 }
 
-// 매물 상세
+// 매물 상세정보
 Future<Response> getPropertyHandler(Request req, String id) async {
   final objId = ObjectId.parse(id);
   final property = await propertiesCol.findOne({'_id': objId});
@@ -169,7 +169,7 @@ Future<Response> toggleFavoriteHandler(Request req, String id) async {
   return Response.ok(jsonEncode({'isFavorite': isFavorite}));
 }
 
-// 로그아웃 (더미)
+// 로그아웃 (현재 구현 안됨)
 Response logoutHandler(Request req) {
   return Response.ok(jsonEncode({'success': true}));
 }
