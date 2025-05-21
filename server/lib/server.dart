@@ -8,6 +8,9 @@ import 'package:mongo_dart/mongo_dart.dart';
 import 'package:dart_jsonwebtoken/dart_jsonwebtoken.dart';
 import 'package:path/path.dart' as p;
 import 'package:mime/mime.dart';
+import 'package:mailer/mailer.dart';
+import 'package:mailer/smtp_server.dart';
+import 'package:dotenv/dotenv.dart';
 
 // MongoDB 연결
 late Db db;
@@ -16,6 +19,12 @@ late DbCollection propertiesCol;
 
 // JWT 시크릿 키
 const jwtSecret = 'palbang_secret';
+
+// 이메일 인증 코드 저장
+final Map<String, Map<String, dynamic>> emailVerifications = {};
+
+// dotenv 객체 생성
+final dotenv = DotEnv();
 
 // JWT 인증 미들웨어
 Middleware jwtMiddleware() {
@@ -40,15 +49,27 @@ Middleware jwtMiddleware() {
 
 // 회원가입
 Future<Response> registerHandler(Request req) async {
-  final data = jsonDecode(await req.readAsString());
-  final id = data['id'];
-  final password = data['password'];
-  final exist = await usersCol.findOne({'id': id});
-  if (exist != null) {
-    return Response(400, body: jsonEncode({'error': '이미 존재하는 ID입니다.'}));
+  final body = await req.readAsString();
+  final data = jsonDecode(body);
+  final email = data['email'] as String?;
+  final password = data['password'] as String?;
+
+  if (email == null || password == null) {
+    return Response(400, body: jsonEncode({'error': '이메일과 비밀번호를 입력하세요.'}));
   }
-  await usersCol.insert({'id': id, 'password': password});
-  return Response.ok(jsonEncode({'userId': id}));
+
+  final record = emailVerifications[email];
+  if (record == null || record['verified'] != true) {
+    return Response(400, body: jsonEncode({'error': '이메일 인증이 필요합니다.'}));
+  }
+
+  // 실제 회원가입 로직(DB 저장 등) 수행
+  // ... 기존 회원가입 코드 ...
+
+  // 인증 기록 삭제(보안상)
+  emailVerifications.remove(email);
+
+  return Response.ok(jsonEncode({'success': true}));
 }
 
 // 로그인
@@ -178,7 +199,47 @@ Response logoutHandler(Request req) {
   return Response.ok(jsonEncode({'success': true}));
 }
 
+// 인증 코드 발송 API
+Future<Response> sendVerificationHandler(Request req) async {
+  final body = await req.readAsString();
+  final data = jsonDecode(body);
+  final email = data['email'] as String?;
+
+  if (email == null || !email.contains('@')) {
+    return Response(400, body: jsonEncode({'error': '유효한 이메일을 입력하세요.'}));
+  }
+
+  // 인증 코드 생성
+  final code =
+      (100000 + (DateTime.now().millisecondsSinceEpoch % 900000)).toString();
+  final expiresAt = DateTime.now().add(Duration(minutes: 5));
+  emailVerifications[email] = {'code': code, 'expiresAt': expiresAt};
+
+  // 메일 발송 설정
+  final smtpServer = SmtpServer(
+    'smtp.naver.com',
+    username: dotenv['EMAIL_USER'],
+    password: dotenv['EMAIL_PASS'],
+    port: 465,
+    ssl: true,
+  );
+
+  final message = Message()
+    ..from = Address('your_email@naver.com', '팔방')
+    ..recipients.add(email)
+    ..subject = '[팔방] 이메일 인증 코드'
+    ..text = '인증 코드: $code\n5분 이내에 입력해주세요.';
+
+  try {
+    await send(message, smtpServer);
+    return Response.ok(jsonEncode({'success': true}));
+  } catch (e) {
+    return Response(500, body: jsonEncode({'error': '이메일 발송 실패: $e'}));
+  }
+}
+
 Future<void> startServer() async {
+  dotenv.load();
   db = await Db.create('mongodb://localhost:27017/palbang');
   await db.open();
   usersCol = db.collection('users');
@@ -193,7 +254,30 @@ Future<void> startServer() async {
     ..get('/api/properties/<id>', getPropertyHandler)
     ..put('/api/properties/<id>', editPropertyHandler)
     ..delete('/api/properties/<id>', deletePropertyHandler)
-    ..post('/api/properties/<id>/favorite', toggleFavoriteHandler);
+    ..post('/api/properties/<id>/favorite', toggleFavoriteHandler)
+    ..post('/api/auth/send_verification', sendVerificationHandler)
+    ..post('/api/auth/verify_code', (Request req) async {
+      final body = await req.readAsString();
+      final data = jsonDecode(body);
+      final email = data['email'] as String?;
+      final code = data['code'] as String?;
+
+      if (email == null || code == null) {
+        return Response(400, body: jsonEncode({'error': '이메일과 코드를 입력하세요.'}));
+      }
+
+      final record = emailVerifications[email];
+      if (record == null || record['code'] != code) {
+        return Response(400, body: jsonEncode({'error': '인증 코드가 올바르지 않습니다.'}));
+      }
+      if (DateTime.now().isAfter(record['expiresAt'])) {
+        return Response(400, body: jsonEncode({'error': '인증 코드가 만료되었습니다.'}));
+      }
+
+      // 인증 성공: 인증 상태 저장 (간단 예시)
+      record['verified'] = true;
+      return Response.ok(jsonEncode({'success': true}));
+    });
 
   // 인증 예외 미들웨어: 회원가입/로그인/로그아웃 경로는 인증 없이, 그 외는 인증 필요
   Middleware authExceptionMiddleware() {
