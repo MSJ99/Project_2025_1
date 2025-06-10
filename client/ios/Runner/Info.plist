@@ -7,7 +7,7 @@
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleDisplayName</key>
-	<string>Client</string>
+	<string>팔방</string>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleIdentifier</key>
@@ -47,5 +47,23 @@
 	</array>
 	<key>NMFClientId</key>
 	<string>egtfghbrxw</string>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>com.palbang.client</string>
+				<string>com.googleusercontent.apps.1043164449725-j9qugm2b3ngirmuoom606fi7dkv5f3r8</string>
+			</array>
+		</dict>
+	</array>
+	<key>GIDClientID</key>
+	<string>1043164449725-j9qugm2b3ngirmuoom606fi7dkv5f3r8.apps.googleusercontent.com</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>앱이 위치 정보를 사용하려면 허용이 필요합니다.</string>
+	<key>NSLocationAlwaysUsageDescription</key>
+	<string>앱이 항상 위치 정보를 사용하려면 허용이 필요합니다.</string>
 </dict>
 </plist>
